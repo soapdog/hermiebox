@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Example</title>
+    <script src="../dist/index.js"></script>
+</head>
+
+<body>
+    <script>
+        main = async () => {
+            let keys = {
+                curve: "ed25519",
+                public: "...",
+                private: "...",
+                id: "..."
+            }
+
+            var server = await hermiebox.api.connect(keys)
+
+            console.log("you are", server.id)
+
+            try {
+                var msg = await hermiebox.api.getMsgWithValue("%uGu+hzsvYVG8kOUF3FRqjfx0TMKFCfQ5AC5LSTz1G7g=.sha256")
+
+                console.log("msg", msg.value.content.text)
+
+            } catch (e) {
+                console.error(e)
+            }
+        }
+
+        main()
+    </script>
+</body>
+
+</html>
