@@ -43,6 +43,7 @@ const api = {
                     reject(err)
                 } else {
                     hermiebox.sbot = server
+                    hermiebox.connected = true
                     resolve(server)
                 }
             })
@@ -65,6 +66,29 @@ const api = {
                 return typeof ts === 'number' && ts !== opts.gt && ts !== opts.lt
             })
         )
+    },
+
+    
+    pullPublic: function (extraOpts) {
+        return new Promise((resolve, reject) => {
+            let defaultOpts = {
+                reverse: true,
+                live: false
+            }
+
+            pull(
+                hermiebox.sbot.createFeedStream(Object.assign(defaultOpts, extraOpts)),
+                pull.filter(msg => msg && msg.value && msg.value.content),
+                // pull.asyncMap(addNameToMsg(this.ssb)),
+                pull.collect((err, msgs) => {
+                    if (err) {
+                        reject(err)
+                    }
+
+                    resolve(msgs)
+                })
+            )
+        })      
     },
 
     get: function (id) {
@@ -108,6 +132,7 @@ const api = {
 
 
 const hermiebox = {
+    connected: false,
     api,
     manifest,
     modules: {

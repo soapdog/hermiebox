@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "browserify src/hermiebox.js -o dist/index.js"
+    "build": "browserify src/hermiebox.js -o dist/index.js",
+    "copy": "copy .\\dist\\index.js ..\\patchfox\\vendor\\hermiebox.js"
   },
   "keywords": [],
   "author": "andre alves garzia <andre@andregarzia.com>",
