@@ -13,6 +13,7 @@ const pullReconnect = require("pull-reconnect")
 const pullSplit = require("pull-split")
 const pull = require("pull-stream")
 const pullUtf8Decoder = require("pull-utf8-decoder")
+const ssbAvatar = require("ssb-avatar")
 const ssbClient = require("ssb-client")
 const ssbConfig = require("ssb-config")
 const ssbFeed = require("ssb-feed")
@@ -68,7 +69,7 @@ const api = {
         )
     },
 
-    
+
     pullPublic: function (extraOpts) {
         return new Promise((resolve, reject) => {
             let defaultOpts = {
@@ -88,7 +89,58 @@ const api = {
                     resolve(msgs)
                 })
             )
-        })      
+        })
+    },
+
+    thread: function (msgid) {
+        return new Promise((resolve, reject) => {
+            var sort = hermiebox.modules.ssbSort
+            var pull = hermiebox.modules.pullStream
+
+            function getThread(sbot, id, cb) {
+                sbot.get(id, function (err, value) {
+                    if (err) return cb(err)
+                    var rootMsg = { key: id, value: value }
+                    pull(
+                        sbot.backlinks && sbot.backlinks.read ? sbot.backlinks.read({
+                            query: [
+                                {
+                                    $filter: {
+                                        dest: id,
+                                        value: {
+                                            content: {
+                                                type: 'post',
+                                                root: id
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }) : pull(
+                            sbot.links({ dest: id, values: true, rel: 'root' }),
+                            pull.filter(function (msg) {
+                                var c = msg && msg.value && msg.value.content
+                                return c && c.type === 'post' && c.root === id
+                            }),
+                            pull.unique('key')
+                        ),
+                        pull.collect(function (err, msgs) {
+                            if (err) return cb(err)
+                            cb(null, sort([rootMsg].concat(msgs)))
+                        })
+                    )
+                })
+            }
+
+            getThread(hermiebox.sbot, msgid, (err, data) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(data)
+                }
+            })
+
+        })
     },
 
     get: function (id) {
@@ -125,8 +177,21 @@ const api = {
                 })
                 .catch((err) => reject(err))
         })
-    }
+    },
 
+    avatar: function (key) {
+        return new Promise((resolve, reject) => {
+            ssbAvatar(hermiebox.sbot, hermiebox.sbot.id, key, function (err, data) {
+                if (err) {
+                    reject(err)
+                } else if (data) {
+                    resolve(data)
+                } else {
+                    reject("unknown error")
+                }
+            })
+        })
+    }
 
 }
 
@@ -151,6 +216,7 @@ const hermiebox = {
         pullSplit,
         pullStream: pull,
         pullUtf8Decoder,
+        ssbAvatar,
         ssbClient,
         ssbConfig,
         ssbFeed,
