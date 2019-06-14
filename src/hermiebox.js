@@ -17,11 +17,13 @@ const ssbAvatar = require("ssb-avatar")
 const ssbClient = require("ssb-client")
 const ssbConfig = require("ssb-config")
 const ssbFeed = require("ssb-feed")
+const ssbGatheringSchema = require("ssb-gathering-schema")
 const ssbGit = require("ssb-git")
 const ssbKeys = require("ssb-keys")
 const ssbMarkdown = require("ssb-markdown")
 const ssbMarked = require("ssb-marked")
 const ssbMentions = require("ssb-mentions")
+const ssbMsgSchemas = require("ssb-msg-schemas")
 const ssbRef = require("ssb-ref")
 const ssbSort = require("ssb-sort")
 const ssbWebResolver = require("ssb-web-resolver")
@@ -193,7 +195,7 @@ const api = {
         })
     },
 
-    aboutMessages: function(sourceId, destId) {
+    aboutMessages: function (sourceId, destId) {
         return new Promise((resolve, reject) => {
             var pull = hermiebox.modules.pullStream
 
@@ -248,6 +250,30 @@ const api = {
         })
     },
 
+    getBlob: function (blobid) {
+        return new Promise((resolve, reject) => {
+            let sbot = hermiebox.sbot
+            sbot.blobs.want(blobid, function (err) {
+                if (err) {
+                    reject(err)
+                } else {
+                    var pull = hermiebox.modules.pullStream
+
+                    pull(
+                        sbot.blobs.get(blobid),
+                        pull.collect(function (err, values) {
+                            if (err) {
+                                reject(err)
+                            } else {
+                                resolve(values)
+                            }
+                        })
+                    )
+                }
+            })
+        })
+    }
+
 }
 
 
@@ -280,10 +306,12 @@ const hermiebox = {
         ssbMarkdown,
         ssbMarked,
         ssbMentions,
+        ssbMsgSchemas,
         ssbRef,
         ssbSort,
         ssbWebResolver,
-        streamToPullStram
+        streamToPullStram,
+        ssbGatheringSchema
     }
 }
 
