@@ -11,11 +11,13 @@
   "author": "andre alves garzia <andre@andregarzia.com>",
   "license": "MIT",
   "dependencies": {
+    "drag-and-drop-files": "0.0.1",
     "private-box": "^0.3.0",
     "pull-box-stream": "^1.0.13",
     "pull-cat": "^1.1.11",
     "pull-catch": "^1.0.1",
     "pull-defer": "^0.2.3",
+    "pull-file-reader": "^1.0.2",
     "pull-identify-filetype": "^1.1.0",
     "pull-many": "^1.0.8",
     "pull-next": "^1.0.1",

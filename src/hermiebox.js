@@ -13,6 +13,7 @@ const pullReconnect = require("pull-reconnect")
 const pullSplit = require("pull-split")
 const pull = require("pull-stream")
 const pullUtf8Decoder = require("pull-utf8-decoder")
+const pullFileReader = require("pull-file-reader")
 const ssbAvatar = require("ssb-avatar")
 const ssbClient = require("ssb-client")
 const ssbConfig = require("ssb-config")
@@ -72,7 +73,7 @@ const api = {
     },
 
 
-    pullPublic: function (extraOpts) {
+    pullPublic: function (extraOpts, nonStandard) {
         return new Promise((resolve, reject) => {
             let defaultOpts = {
                 reverse: true,
@@ -82,6 +83,18 @@ const api = {
             pull(
                 hermiebox.sbot.createFeedStream(Object.assign(defaultOpts, extraOpts)),
                 pull.filter(msg => msg && msg.value && msg.value.content),
+                pull.filter(msg => {
+                    if (!nonStandard.onlyRoots) {
+                        return true
+                    }
+
+                    if (msg && msg.value && msg.value.content) {
+                        if (msg.value.content.root || msg.value.content.branch) {
+                            return false
+                        }
+                    }
+                    return true
+                }),
                 // pull.asyncMap(addNameToMsg(this.ssb)),
                 pull.collect((err, msgs) => {
                     if (err) {
@@ -286,6 +299,7 @@ const hermiebox = {
         pullBoxStream,
         pullCat,
         pullDefer,
+        pullFileReader,
         pullIdentityFiletype,
         pullMany,
         pullNext,
